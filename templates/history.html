@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ประวัติการขาย | เกรดกล้วย</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  <main>
+    <section class="history-shell" aria-label="ประวัติการบันทึกหวีกล้วย">
+
+      <div class="history-header">
+        <div>
+          <div class="badge">ประวัติการบันทึก</div>
+          <h1>ประวัติการขาย</h1>
+        </div>
+        <a class="text-link" href="{{ url_for('main.index') }}">&larr; กลับหน้าอัปโหลด</a>
+      </div>
+
+      <div class="history-panel">
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>วันที่-เวลา</th>
+                <th>ความกว้าง (ซม.)</th>
+                <th>เกรด</th>
+                <th>ราคาแนะนำ (บาท)</th>
+                <th>สถานะ</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for record in records %}
+                <tr{% if record["Status"] == "Sold" %} class="sold-row"{% endif %}>
+                  <td>{{ record["Timestamp"] }}</td>
+                  <td>{{ record["Total_Width_CM"] }}</td>
+                  <td>
+                    <span class="grade-badge grade-{{ record['Grade_Result'] }}">
+                      {{ record["Grade_Result"] }}
+                    </span>
+                  </td>
+                  <td>{{ record["Recommended_Price"] }}</td>
+                  <td>
+                    {% if record["Status"] == "Sold" %}
+                      <span class="status-badge status-sold">ขายแล้ว</span>
+                    {% else %}
+                      <span class="status-badge status-stock">ในสต็อก</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <div class="row-actions">
+                      {% if record["Status"] == "Sold" %}
+                        <form action="{{ url_for('main.cancel_sell_history_record', row_index=loop.index0) }}" method="post">
+                          <button class="secondary-action" type="submit">ยกเลิกขาย</button>
+                        </form>
+                      {% else %}
+                        <form action="{{ url_for('main.sell_history_record', row_index=loop.index0) }}" method="post">
+                          <button class="sell-action" type="submit">ขาย</button>
+                        </form>
+                      {% endif %}
+                      <form class="delete-form" action="{{ url_for('main.delete_history_record', row_index=loop.index0) }}" method="post">
+                        <button type="submit">ลบ</button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              {% else %}
+                <tr>
+                  <td colspan="6" class="empty-state">ยังไม่มีข้อมูลที่บันทึกไว้</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <section class="stock-summary" aria-label="สรุปสต็อก">
+          <header>สรุปสต็อก</header>
+          <div class="summary-grid">
+            {% for grade, grade_summary in summary["grades"].items() %}
+              <div class="summary-card">
+                <span>เกรด {{ grade }}</span>
+                <strong>{{ grade_summary["count"] }}</strong>
+                <p>หวีที่บันทึกไว้</p>
+                <p>ราคาเฉลี่ย:
+                  {% if grade_summary["average_price"] is not none %}
+                    {{ grade_summary["average_price"] }} บาท
+                  {% else %}
+                    -
+                  {% endif %}
+                </p>
+              </div>
+            {% endfor %}
+          </div>
+          <div class="total-value">
+            <span>มูลค่าสต็อกทั้งหมด (ยังไม่ได้ขาย)</span>
+            <strong>{{ summary["total_value"] }} บาท</strong>
+          </div>
+          <div class="total-value revenue-value">
+            <span>ยอดขาย</span>
+            <strong>{{ summary["total_revenue"] }} บาท</strong>
+          </div>
+        </section>
+
+      </div>
+    </section>
+  </main>
+</body>
+</html>

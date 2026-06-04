@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>วิธีถ่ายภาพ | เกรดกล้วย</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  <main>
+    <section class="guide-shell" aria-label="วิธีถ่ายภาพก่อนอัปโหลด">
+
+      <div class="photo-panel">
+        <img src="{{ url_for('static', filename='guide.jpg') }}" alt="ตัวอย่างการถ่ายภาพหวีกล้วยที่ถูกต้อง">
+      </div>
+
+      <div class="content-panel">
+        <div class="badge">วิธีถ่ายภาพ</div>
+        <h1>ถ่ายภาพให้ถูกต้อง<br>ก่อนวิเคราะห์เกรด</h1>
+        <p>ทำตามขั้นตอนด้านล่างให้ครบ เพื่อให้ระบบวัดขนาดจากเหรียญ 10 บาทและตรวจสอบหวีกล้วยได้แม่นยำที่สุด</p>
+
+        <ul class="checklist">
+          <li>ถ่ายจากมุมบนตรงๆ อย่าเอียงกล้อง</li>
+          <li>วางเหรียญ 10 บาทไว้ข้างหวีกล้วยให้เห็นชัด</li>
+          <li>ใช้พื้นหลังสีเข้ม (ไม่เหลือง ไม่เขียว) เพื่อให้ระบบแยกสีกล้วยได้ง่าย</li>
+          <li>แสงสว่างทั่วถึง ไม่มีเงาทับหวีหรือเหรียญ</li>
+        </ul>
+
+        <a class="cta" href="{{ url_for('main.index') }}">เข้าใจแล้ว ไปอัปโหลดรูป &rarr;</a>
+      </div>
+
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>เกรดกล้วย | ระบบประเมินราคากล้วยหอม</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  <main>
+    <section class="shell" aria-label="ระบบประเมินเกรดกล้วยหอม">
+
+      <div class="intro">
+        <div class="badge">ประเมินเกรดด้วยภาพถ่าย</div>
+        <h1>GradeGluay<br><span class="subtitle-th">ระบบเกรดกล้วยหอม</span></h1>
+        <p>
+          อัปโหลดภาพกล้วยหอมทั้งหวีที่มีเหรียญ 10 บาทวางอยู่ข้างๆ
+          ระบบจะใช้เหรียญเป็นตัวอ้างอิงขนาด แล้วคำนวณความกว้าง ความยาว
+          และให้เกรดพร้อมราคาแนะนำโดยอัตโนมัติ
+        </p>
+        <p class="tip">
+          <span>&#128161;</span>
+          ถ่ายภาพยังไงให้ได้ผลแม่นยำ?
+          <a href="{{ url_for('main.guide') }}">ดูวิธีถ่ายภาพ &rarr;</a>
+        </p>
+      </div>
+
+      <div class="panel">
+        {% if request.args.get('saved') %}
+          <div class="message success">บันทึกข้อมูลการขายเรียบร้อยแล้ว</div>
+        {% endif %}
+
+        {% if error %}
+          <div class="message error">{{ error }}</div>
+        {% endif %}
+
+        <a class="panel-link" href="{{ url_for('main.history') }}">&larr; ดูประวัติการขาย</a>
+
+        <form id="uploadForm" class="upload-box" action="{{ url_for('main.index') }}" method="post" enctype="multipart/form-data">
+          <label for="banana_image">เลือกภาพหวีกล้วย</label>
+          <input
+            id="banana_image"
+            name="banana_image"
+            type="file"
+            accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+            capture="environment"
+            required
+          >
+
+          <div id="previewWrap" class="preview-wrap">
+            <label>แตะที่ศูนย์กลางเหรียญ 10 บาทในภาพ</label>
+            <div id="previewStage" class="preview-stage">
+              <img id="imagePreview" alt="ตัวอย่างภาพหวีกล้วยที่อัปโหลด">
+              <span id="coinDot" class="coin-dot" hidden></span>
+            </div>
+          </div>
+
+          <input id="clickXRatio" name="click_x_ratio" type="hidden">
+          <input id="clickYRatio" name="click_y_ratio" type="hidden">
+          <button type="submit">วิเคราะห์เกรดและราคา</button>
+        </form>
+
+        {% if result %}
+          <section class="result" aria-label="ผลการประเมินเกรด">
+            <header>ผลการประเมิน</header>
+            <div class="metrics">
+              <div class="metric">
+                <span>ความกว้าง</span>
+                <strong>{{ result.width }} ซม.</strong>
+              </div>
+              <div class="metric">
+                <span>ความยาวหวี</span>
+                <strong>{{ result.length }} ซม.</strong>
+              </div>
+              <div class="metric">
+                <span>พื้นที่โดยประมาณ</span>
+                <strong>{{ result.area }} ซม.&sup2;</strong>
+              </div>
+              <div class="metric">
+                <span>เกรด</span>
+                <strong>{{ result.grade }}</strong>
+              </div>
+              <div class="metric">
+                <span>ราคาแนะนำ</span>
+                <strong>{{ result.price }} บาท</strong>
+              </div>
+            </div>
+            {% if result.warning %}
+              <div class="message error">{{ result.warning }}</div>
+            {% endif %}
+            {% if result.annotated_image %}
+              <div class="annotated">
+                <img src="{{ url_for('static', filename=result.annotated_image) }}" alt="ภาพหวีกล้วยพร้อมเส้นวัดขนาด">
+              </div>
+            {% endif %}
+            <form class="confirm-form" action="{{ url_for('main.save_record') }}" method="post">
+              <input type="hidden" name="width" value="{{ result.width }}">
+              <input type="hidden" name="grade" value="{{ result.grade }}">
+              <input type="hidden" name="price" value="{{ result.price }}">
+              <button type="submit">บันทึกข้อมูลการขาย</button>
+            </form>
+          </section>
+        {% endif %}
+      </div>
+
+    </section>
+  </main>
+
+  <script>
+    const uploadForm     = document.getElementById("uploadForm");
+    const fileInput      = document.getElementById("banana_image");
+    const previewWrap    = document.getElementById("previewWrap");
+    const previewStage   = document.getElementById("previewStage");
+    const imagePreview   = document.getElementById("imagePreview");
+    const coinDot        = document.getElementById("coinDot");
+    const clickXRatio    = document.getElementById("clickXRatio");
+    const clickYRatio    = document.getElementById("clickYRatio");
+
+    fileInput.addEventListener("change", () => {
+      const file = fileInput.files[0];
+      clickXRatio.value = "";
+      clickYRatio.value = "";
+      coinDot.hidden = true;
+      if (!file) {
+        previewWrap.style.display = "none";
+        imagePreview.removeAttribute("src");
+        return;
+      }
+      imagePreview.src = URL.createObjectURL(file);
+      previewWrap.style.display = "block";
+    });
+
+    previewStage.addEventListener("click", (event) => {
+      if (!imagePreview.naturalWidth || !imagePreview.naturalHeight) return;
+      const rect = imagePreview.getBoundingClientRect();
+      const webX = event.clientX - rect.left;
+      const webY = event.clientY - rect.top;
+      if (webX < 0 || webY < 0 || webX > rect.width || webY > rect.height) return;
+      const clickX = webX / imagePreview.width;
+      const clickY = webY / imagePreview.height;
+      clickXRatio.value = Math.min(Math.max(clickX, 0), 1).toFixed(8);
+      clickYRatio.value = Math.min(Math.max(clickY, 0), 1).toFixed(8);
+      coinDot.style.setProperty("--coin-preview-size", `${Math.max(28, rect.width * 0.08)}px`);
+      coinDot.style.left  = `${webX}px`;
+      coinDot.style.top   = `${webY}px`;
+      coinDot.hidden = false;
+    });
+
+    uploadForm.addEventListener("submit", (event) => {
+      if (!clickXRatio.value || !clickYRatio.value) {
+        event.preventDefault();
+        alert("กรุณาแตะที่ศูนย์กลางเหรียญ 10 บาทในภาพก่อนวิเคราะห์");
+      }
+    });
+  </script>
+</body>
+</html>
