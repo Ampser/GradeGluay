@@ -28,3 +28,4 @@ htmlcov/
 Thumbs.db
 .vscode/
 .idea/
+.env.example
