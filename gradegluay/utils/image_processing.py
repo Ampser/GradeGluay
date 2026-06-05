@@ -122,16 +122,16 @@ def parse_float(value, field_name):
 
 
 def calculate_grade_and_price(measured_width_cm):
-    if measured_width_cm < 20:
+    if measured_width_cm < 22:
         grade = "S"
         recommended_price = 20
-    elif measured_width_cm < 23:
+    elif measured_width_cm < 24:
         grade = "S"
         recommended_price = 25
     elif measured_width_cm < 26:
         grade = "M"
         recommended_price = 30
-    elif measured_width_cm < 29:
+    elif measured_width_cm < 28:
         grade = "M"
         recommended_price = 35
     else:
